@@ -160,5 +160,43 @@ namespace TollFeeCalculator.Test
             Assert.False(resultForVehicle);
             Assert.Equal<uint>(60, resultFee);
         }
+
+        [Fact]
+        public void CheckFeeForHoursOnWeekday()
+        {
+            var calculator = new SwedenTollCalculator();
+            var date1 = DateTime.ParseExact("29/12/2021 06:00", "dd/MM/yyyy HH:mm", null); // Fee is 9
+            var date2 = DateTime.ParseExact("29/12/2021 06:45", "dd/MM/yyyy HH:mm", null); // Fee is 16
+            var date3 = DateTime.ParseExact("29/12/2021 07:30", "dd/MM/yyyy HH:mm", null); // Fee is 22
+            var date4 = DateTime.ParseExact("29/12/2021 08:15", "dd/MM/yyyy HH:mm", null); // Fee is 16
+            var date5 = DateTime.ParseExact("29/12/2021 12:00", "dd/MM/yyyy HH:mm", null); // Fee is 9
+            var date6 = DateTime.ParseExact("29/12/2021 15:15", "dd/MM/yyyy HH:mm", null); // Fee is 16
+            var date7 = DateTime.ParseExact("29/12/2021 16:00", "dd/MM/yyyy HH:mm", null); // Fee is 22
+            var date8 = DateTime.ParseExact("29/12/2021 17:30", "dd/MM/yyyy HH:mm", null); // Fee is 16
+            var date9 = DateTime.ParseExact("29/12/2021 18:15", "dd/MM/yyyy HH:mm", null); // Fee is 9
+            var date10 = DateTime.ParseExact("29/12/2021 00:00", "dd/MM/yyyy HH:mm", null); // Fee is 0
+
+            var resultDate1 = calculator.GetFeeForTime(date1);
+            var resultDate2 = calculator.GetFeeForTime(date2);
+            var resultDate3 = calculator.GetFeeForTime(date3);
+            var resultDate4 = calculator.GetFeeForTime(date4);
+            var resultDate5 = calculator.GetFeeForTime(date5);
+            var resultDate6 = calculator.GetFeeForTime(date6);
+            var resultDate7 = calculator.GetFeeForTime(date7);
+            var resultDate8 = calculator.GetFeeForTime(date8);
+            var resultDate9 = calculator.GetFeeForTime(date9);
+            var resultDate10 = calculator.GetFeeForTime(date10);
+
+            Assert.Equal<uint>(9, resultDate1);
+            Assert.Equal<uint>(16, resultDate2);
+            Assert.Equal<uint>(22, resultDate3);
+            Assert.Equal<uint>(16, resultDate4);
+            Assert.Equal<uint>(9, resultDate5);
+            Assert.Equal<uint>(16, resultDate6);
+            Assert.Equal<uint>(22, resultDate7);
+            Assert.Equal<uint>(16, resultDate8);
+            Assert.Equal<uint>(9, resultDate9);
+            Assert.Equal<uint>(0, resultDate10);
+        }
     }
 }
