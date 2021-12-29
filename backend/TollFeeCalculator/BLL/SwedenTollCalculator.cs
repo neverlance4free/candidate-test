@@ -6,7 +6,7 @@ using TollFeeCalculator.Entities;
 
 namespace TollFeeCalculator.BLL
 {
-    public class SwedenTollCalculator : BaseTollCalculator
+    public class SwedenTollCalculator : BaseTollCalculator, ITollCalculator
     {
         public SwedenTollCalculator()
         {
@@ -23,9 +23,32 @@ namespace TollFeeCalculator.BLL
             if (this.IsTollFree(vehicle) || this.IsTollFree(dates.First())) return 0;
 
             uint totalFee = 0;
+            var groupedDates = dates.GroupBy(k => k.Date, e => e);
+
+            foreach (var day in groupedDates)
+            {
+                totalFee += GetFeeForOneDay(vehicle, day.ToList());
+            }
+            return totalFee;
+        }
+
+        public override bool IsTollFree(IVehicle vehicle) => vehicle.Type != VehicleType.Car;
+
+
+        public uint GetFeeForOneDay(IVehicle vehicle, IEnumerable<DateTime> dates)
+        {
+            if (vehicle is null) throw new ArgumentNullException(nameof(vehicle));
+            if (dates is null) throw new ArgumentNullException(nameof(dates));
+
+            if (!dates.Any()) return 0;
+            if (this.IsTollFree(vehicle) || this.IsTollFree(dates.First())) return 0;
+
+            var orderedDates = dates.OrderBy(x => x.TimeOfDay).ToList();
+
+            uint totalFee = 0;
             DateTime? lastFeeDate = null;
 
-            foreach (var date in dates)
+            foreach (var date in orderedDates)
             {
                 if (this.MaxFeePerDay.HasValue && totalFee >= this.MaxFeePerDay)
                 {
@@ -33,7 +56,7 @@ namespace TollFeeCalculator.BLL
                     break;
                 }
 
-                if(lastFeeDate.HasValue && date.TimeOfDay.Subtract(lastFeeDate.Value.TimeOfDay).Hours == 0)
+                if (lastFeeDate.HasValue && date.TimeOfDay.Subtract(lastFeeDate.Value.TimeOfDay).Hours == 0)
                 {
                     break;
                 }
@@ -44,20 +67,11 @@ namespace TollFeeCalculator.BLL
             return totalFee;
         }
 
-        public override bool IsTollFree(IVehicle vehicle)
-        {
-            return vehicle.Type != VehicleType.Car;
-        }
-
-        public override bool IsTollFree(DateTime date)
-        {
-            return DateSystem.IsWeekend(date, this.Country) || DateSystem.IsPublicHoliday(date, this.Country);
-        }
-
-        public override uint GetFeeForTime(DateTime date)
+        public uint GetFeeForTime(DateTime date)
         {
             return _feePeriods.FirstOrDefault(x => x.IsInInterval(date))?.Fee ?? 0;
         }
+
 
         private readonly List<FeeTimeInterval> _feePeriods = new List<FeeTimeInterval>
         {

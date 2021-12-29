@@ -198,5 +198,60 @@ namespace TollFeeCalculator.Test
             Assert.Equal<uint>(9, resultDate9);
             Assert.Equal<uint>(0, resultDate10);
         }
+
+        [Fact]
+        public void FeeForTwoDifferentDaysOnWeekday()
+        {
+            var calculator = new SwedenTollCalculator();
+            var dates = new List<DateTime> // Fee in sums are: 92 and 47. But first day will be cut to 60
+            {
+                DateTime.ParseExact("29/12/2021 06:00", "dd/MM/yyyy HH:mm", null), // Fee is 9
+                DateTime.ParseExact("29/12/2021 07:00", "dd/MM/yyyy HH:mm", null), // Fee is 22
+                DateTime.ParseExact("29/12/2021 08:00", "dd/MM/yyyy HH:mm", null), // Fee is 16
+                DateTime.ParseExact("29/12/2021 09:00", "dd/MM/yyyy HH:mm", null), // Fee is 9
+                DateTime.ParseExact("29/12/2021 10:00", "dd/MM/yyyy HH:mm", null), // Fee is 9
+                DateTime.ParseExact("29/12/2021 11:00", "dd/MM/yyyy HH:mm", null), // Fee is 9
+                DateTime.ParseExact("29/12/2021 12:00", "dd/MM/yyyy HH:mm", null), // Fee is 9
+                DateTime.ParseExact("29/12/2021 13:00", "dd/MM/yyyy HH:mm", null), // Fee is 9
+
+                DateTime.ParseExact("30/12/2021 06:00", "dd/MM/yyyy HH:mm", null), // Fee is 9
+                DateTime.ParseExact("30/12/2021 07:00", "dd/MM/yyyy HH:mm", null), // Fee is 22
+                DateTime.ParseExact("30/12/2021 08:00", "dd/MM/yyyy HH:mm", null), // Fee is 16
+            };
+            var car = new Vehicle(VehicleType.Car);
+
+            var resultForVehicle = calculator.IsTollFree(car);
+            var resultFee = calculator.GetFee(car, dates);
+
+            Assert.False(resultForVehicle);
+            Assert.Equal<uint>(107, resultFee);
+        }
+
+        [Fact]
+        public void UnorderedListPerTwoDaysMustGiveSameResult()
+        {
+            var calculator = new SwedenTollCalculator();
+            var dates = new List<DateTime> // Fee in sums are: 92 and 47. But first day will be cut to 60
+            {
+                DateTime.ParseExact("29/12/2021 06:00", "dd/MM/yyyy HH:mm", null), // Fee is 9
+                DateTime.ParseExact("29/12/2021 08:00", "dd/MM/yyyy HH:mm", null), // Fee is 16
+                DateTime.ParseExact("29/12/2021 09:00", "dd/MM/yyyy HH:mm", null), // Fee is 9
+                DateTime.ParseExact("30/12/2021 07:00", "dd/MM/yyyy HH:mm", null), // Fee is 22
+                DateTime.ParseExact("29/12/2021 10:00", "dd/MM/yyyy HH:mm", null), // Fee is 9
+                DateTime.ParseExact("29/12/2021 11:00", "dd/MM/yyyy HH:mm", null), // Fee is 9
+                DateTime.ParseExact("29/12/2021 13:00", "dd/MM/yyyy HH:mm", null), // Fee is 9
+                DateTime.ParseExact("30/12/2021 06:00", "dd/MM/yyyy HH:mm", null), // Fee is 9
+                DateTime.ParseExact("29/12/2021 12:00", "dd/MM/yyyy HH:mm", null), // Fee is 9
+                DateTime.ParseExact("29/12/2021 07:00", "dd/MM/yyyy HH:mm", null), // Fee is 2
+                DateTime.ParseExact("30/12/2021 08:00", "dd/MM/yyyy HH:mm", null), // Fee is 16
+            };
+            var car = new Vehicle(VehicleType.Car);
+
+            var resultForVehicle = calculator.IsTollFree(car);
+            var resultFee = calculator.GetFee(car, dates);
+
+            Assert.False(resultForVehicle);
+            Assert.Equal<uint>(107, resultFee);
+        }
     }
 }
